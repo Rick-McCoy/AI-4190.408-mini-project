@@ -1,0 +1,253 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs} % For better tables
+\usepackage{multirow} % For multi-row cells in tables
+\usepackage{subcaption} % For subfigures
+% \usepackage{xcolor}   % For colored text, if needed (e.g., for comments)
+\usepackage{makecell} % For line breaks in table cells
+\usepackage{tabularx} % For better table width control
+\usepackage{placeins} % For \FloatBarrier, if needed as alternative to \clearpage
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref}
+
+
+% \def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Analyzing the Impact of Input and Label Modifications on CIFAR-10 Classification}
+
+\author{June Young Yi\\ % Replace with your actual name(s)
+2019-13541, Computer Science Department\\
+Seoul National University\\ % Replace with your actual institution(s)
+{\tt\small julianyi1@snu.ac.kr} % Replace with your actual email(s)
+}
+
+\maketitle
+%\thispagestyle{empty}
+
+%%%%%%%%% ABSTRACT
+\begin{abstract}
+    The performance of deep learning models is intrinsically tied to the quality and nature of training data. Real-world datasets often suffer from imperfections such as noisy labels or distorted inputs, while augmentations intentionally modify data to improve robustness. This paper investigates the effects of systematic input and label modifications on a standard image classification task using the CIFAR-10 dataset and a ResNet-18 model. We evaluate four distinct scenarios: (1) a baseline with unchanged data, (2) completely randomized labels per sample, (3) 20\% symmetric label noise, and (4) strong input image perturbations. Our findings reveal that while random labels lead to a catastrophic failure in learning (Cohen's $\kappa \approx -0.01$), the model exhibits resilience to 20\% label noise, achieving 64.5\% Top-1 accuracy (vs. 78.3\% baseline). Strikingly, strong input perturbations applied during training act as a powerful regularizer, significantly improving generalization and yielding the highest test accuracy of 85.3\% and a Cohen's Kappa of 0.837. Learning curve analysis further elucidates these effects, showing reduced overfitting with input perturbations. These results underscore the complex interplay between data quality, augmentation strategies, and model robustness, offering insights for developing more resilient machine learning systems.
+\end{abstract}
+
+%%%%%%%%% BODY TEXT
+\section{Introduction}
+\label{sec:intro}
+
+Deep neural networks have achieved state-of-the-art performance across a multitude of computer vision tasks, including image classification~\cite{Krizhevsky2012Imagenet,He2016DeepRL}. A critical factor underpinning this success is the availability of large-scale, high-quality labeled datasets~\cite{Deng2009ImageNet}. However, in practical applications, data acquisition and annotation processes are often imperfect, leading to various forms of data corruption. Inputs can be distorted due to sensor noise or varying environmental conditions. Labels can be erroneous due to human annotator mistakes, ambiguity in classes, or automated labeling inaccuracies~\cite{Natarajan2013LearningWN,Han2018Coteaching}. Conversely, intentional modifications like data augmentation are widely used to improve model generalization~\cite{Shorten2019ASO}.
+
+Understanding how these data imperfections and intentional modifications affect model training and generalization is crucial for building robust and reliable machine learning systems. While models can sometimes memorize even random labels~\cite{Zhang2017UnderstandingDL}, their ability to generalize to unseen data under such conditions is severely compromised. On the other hand, certain forms of input modifications can significantly enhance model robustness~\cite{Zhong2020RandomED,Cubuk2019AutoAugmentLA}.
+
+This work aims to systematically study the impact of specific input and label modifications on the CIFAR-10~\cite{Krizhevsky2009LearningML} image classification task. We employ a ResNet-18~\cite{He2016DeepRL} architecture and investigate four distinct experimental configurations:
+\begin{enumerate}
+    \item \textbf{Baseline:} Training with original CIFAR-10 inputs and labels.
+    \item \textbf{Random Label Shuffle:} Training with original inputs but completely randomized labels, where each label is assigned independently and uniformly at random per sample.
+    \item \textbf{Label Noise (20\%):} Training with original inputs, but for 20\% of the samples, their labels are randomly flipped to a different incorrect class.
+    \item \textbf{Input Perturbation:} Training with original labels but heavily distorted input images, including random crops, blur, color jitter, and random erasing. Test images undergo a milder, fixed perturbation.
+\end{enumerate}
+
+We evaluate performance using standard metrics such as Top-1/Top-5 accuracy, loss, Cohen's Kappa score, and per-class F1-scores. Our analysis focuses on quantifying performance changes, examining learning dynamics, and discussing implications for model robustness.
+
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Learning with Noisy Labels.} The challenge of training models with noisy labels has been extensively studied. Approaches range from robust loss functions~\cite{Ghosh2017RobustLF,Zhang2018GeneralizedCE}, label correction mechanisms~\cite{Reed2015TrainingDN}, sample selection strategies~\cite{Han2018Coteaching,Jiang2018MentorNet}, to meta-learning techniques~\cite{Li2019LearningTR}. Our "Label Noise (20\%)" experiment investigates symmetric label noise.
+
+\paragraph{Data Augmentation and Robustness.} Data augmentation is a cornerstone technique for improving the generalization of deep learning models~\cite{Shorten2019ASO}. Common methods include geometric transformations, color space adjustments, and more advanced techniques like Mixup~\cite{Zhang2018mixupBE}, CutMix~\cite{Yun2019CutMixRS}, and AutoAugment~\cite{Cubuk2019AutoAugmentLA}. Our "Input Perturbation" experiment employs a suite of strong augmentations, including Random Erasing~\cite{Zhong2020RandomED}.
+
+\paragraph{Model Capacity and Memorization.} Deep networks can fit random labels~\cite{Zhang2017UnderstandingDL}, highlighting their memorization capacity but questioning true generalization. Our "Random Label Shuffle" experiment probes this.
+
+\paragraph{Covariate Shift.} Input perturbations can be viewed as a form of covariate shift. Our "Input Perturbation" experiment, with different train/test distortions, touches upon this challenge~\cite{Patel2015VisualDA}.
+
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Dataset}
+We use the CIFAR-10 dataset~\cite{Krizhevsky2009LearningML}, comprising 60,000 32x32 color images in 10 classes. It's split into 50,000 training and 10,000 test images. We reserve 10\% of training data (5,000 images) for validation (fixed seed 42), resulting in 45,000 training, 5,000 validation, and 10,000 test images.
+
+\subsection{Baseline Model and Training}
+A ResNet-18 architecture~\cite{He2016DeepRL} is used, initialized from scratch.
+Training is for 200 epochs using SGD (momentum 0.9, weight decay 5e-4, batch size 128). Initial LR is 0.1, with a 5-epoch linear warmup, then Cosine Annealing.
+Main training seed is 42; hook-specific seed (Shuffle, Noise) is 0.
+
+\subsection{Experimental Configurations}
+
+\paragraph{1. Baseline.}
+Original CIFAR-10 inputs/labels. Inputs normalized (CIFAR-10 mean/std).
+
+\paragraph{2. Random Label Shuffle.}
+Original inputs. Each sample's label (train, val, test) replaced by a random uniform choice from 10 classes.
+
+\paragraph{3. Label Noise (20\%).}
+Original inputs. 20\% of sample labels (train, val, test) flipped to a random incorrect class.
+
+\paragraph{4. Input Perturbation.}
+Original labels.
+\textbf{Training/Validation Inputs:} RandomResizedCrop (32x32, scale (0.6,1.0)), RandomHorizontalFlip (p=0.5), GaussianBlur (kernel 3, sigma (0.1,2.0)), ColorJitter (factors 0.4, hue 0.1), ToTensor, Normalize, RandomErasing~\cite{Zhong2020RandomED} (p=0.25, scale (0.02,0.2)). Examples in Figure~\ref{fig:perturbed_examples_main}.
+\textbf{Test Inputs:} GaussianBlur (kernel 3, sigma 1.0), ToTensor, Normalize.
+
+\subsection{Evaluation Metrics}
+Metrics: Cross-Entropy Loss, Acc@1, Acc@5, Cohen's $\kappa$, and per-class F1-scores.
+For "Random Label Shuffle", Acc@1/Acc@5/Loss use shuffled test labels; $\kappa$ and classification reports use original test labels. Others use their respective loader labels.
+
+\section{Experiments and Results} % Combined Section Title
+\label{sec:experiments_results}
+
+\subsection{Implementation Details}
+Conducted using PyTorch~\cite{Paszke2019PyTorchAI}. Model, hyperparameters, data splits consistent (Sec.~\ref{sec:methods}).
+
+\subsection{Overall Performance}
+Table~\ref{tab:main_results} summarizes the key test set metrics.
+
+\begin{table*}[htbp!] % Added 'p' and '!' for more placement flexibility
+    \centering
+    \caption{Test set performance. "Loss", "Acc@1", "Acc@5" are on loader labels. "Cohen's $\kappa$" for "Shuffle" is vs. original labels. Best Acc@1, Acc@5, $\kappa$ bolded; lowest Loss (excl. Shuffle) bolded.}
+    \label{tab:main_results}
+    \resizebox{\textwidth}{!}{%
+        \begin{tabular}{@{}lcccc@{}}
+            \toprule
+            Experiment           & Test Loss (loader labels) & Test Acc@1 (loader labels) & Test Acc@5 (loader labels) & Cohen's $\kappa$ (report labels) \\ \midrule
+            Baseline             & 0.9613                    & 0.7826                     & 0.9790                     & 0.7584                           \\
+            Random Label Shuffle & 2.3219                    & 0.1011                     & 0.4893                     & -0.0134                          \\
+            Label Noise (20\%)   & 1.3409                    & 0.6452                     & 0.8707                     & 0.6058                           \\
+            Input Perturbation   & \textbf{0.5327}           & \textbf{0.8533}            & \textbf{0.9891}            & \textbf{0.8370}                  \\ \bottomrule
+        \end{tabular}%
+    }
+\end{table*}
+
+\paragraph{Baseline.} Achieves 78.26\% Acc@1 and $\kappa=0.7584$.
+\paragraph{Random Label Shuffle.} Fails to learn; Acc@1 on random labels is 10.11\%. Against original labels, $\kappa=-0.0134$. Loss high (2.3219).
+\paragraph{Label Noise (20\%).} Degrades to 64.52\% Acc@1, $\kappa=0.6058$. Model shows resilience.
+\paragraph{Input Perturbation.} Best performance: Acc@1 85.33\% (+7.07\% vs. baseline), $\kappa=0.8370$. Test loss lowest (0.5327). Strong regularization.
+
+\subsection{Training Dynamics}
+\label{ssec:training_dynamics}
+Learning curves for loss, Top-1 accuracy, and Top-5 accuracy are shown in Figure~\ref{fig:learning_curves_main}. Test points (stars) indicate final performance on the respective test sets.
+
+\begin{figure*}[htbp!] % Added 'p' and '!'
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=0.65\linewidth]{figs/loss_curves.png}
+        \caption{Training, Validation, and Test Loss}
+        \label{fig:loss_curves_sub_main}
+    \end{subfigure}
+    \vfill % Adds some vertical space
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figs/acc1_curves.png}
+        \caption{Training, Validation, and Test Top-1 Accuracy}
+        \label{fig:acc1_curves_sub_main}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figs/acc5_curves.png}
+        \caption{Training, Validation, and Test Top-5 Accuracy}
+        \label{fig:acc5_curves_sub_main}
+    \end{subfigure}
+    \caption{Learning curves for all four experimental configurations, showing (a) Cross-Entropy Loss, (b) Top-1 Accuracy, and (c) Top-5 Accuracy for training (solid lines), validation (dashed lines), and final test points (stars) across 200 epochs.}
+    \label{fig:learning_curves_main}
+\end{figure*}
+
+\begin{table*}[htbp!] % Added 'p' and '!'
+    \centering
+    \caption{Per-class F1-scores on the test set. For "Random Label Shuffle", scores are against original CIFAR-10 labels.}
+    \label{tab:f1_scores_main}
+    \resizebox{\textwidth}{!}{%
+        \begin{tabularx}{\textwidth}{@{}Xccccccccccc@{}}
+            \toprule
+            \multirow{2}{*}{\makecell[l]{Experiment}} & \multicolumn{10}{c}{CIFAR-10 Classes (F1-Score)}                                                                                                                                                                     \\ \cmidrule(l){2-11}
+                                                      & Airplane                                         & \makecell{Automo-                                                                                                                                                 \\bile} & Bird & Cat & Deer & Dog & Frog & Horse & Ship & Truck \\ \midrule
+            Baseline                                  & 0.8126                                           & 0.8785            & 0.7200          & 0.6014          & 0.7541          & 0.6882          & 0.8279          & 0.8277          & 0.8796          & 0.8462          \\
+            \makecell[l]{Random Label Shuffle                                                                                                                                                                                                                                \\(vs. original labels)} & 0.0000 & 0.1760 & 0.0135 & 0.0117 & 0.0000 & 0.0000 & 0.0284 & 0.0000 & 0.0000 & 0.0175 \\
+            Label Noise (20\%)                        & 0.6546                                           & 0.7230            & 0.5939          & 0.5049          & 0.6481          & 0.5552          & 0.7001          & 0.6728          & 0.7008          & 0.6994          \\
+            Input Perturbation                        & \textbf{0.8905}                                  & \textbf{0.9188}   & \textbf{0.8246} & \textbf{0.7000} & \textbf{0.8421} & \textbf{0.7538} & \textbf{0.8742} & \textbf{0.9039} & \textbf{0.9222} & \textbf{0.8909} \\
+            \bottomrule
+        \end{tabularx}%
+    }
+\end{table*}
+
+\textbf{Baseline:} Training Acc@1 reaches 100\% (epoch 136), while validation Acc@1 plateaus around 79\%; validation loss increases after epoch $\sim$140, indicating overfitting. Final test Acc@1 is 78.26\%.
+\textbf{Random Label Shuffle:} Losses remain high ($\sim$2.3); accuracies flat ($\sim$10\%). Final test Acc@1 on random labels is 10.11\%. No meaningful learning.
+\textbf{Label Noise (20\%):} Training Acc@1 reaches $\sim$80\%; validation Acc@1 peaks at 64.28\% (epoch 198). The gap and later validation loss behavior suggest overfitting to noise. Test Acc@1 is 64.52\%.
+\textbf{Input Perturbation:} Training Acc@1 reaches $\sim$96\%. Validation Acc@1 closely tracks it, reaching $\sim$83\%. The small train-val gap and low validation loss indicate improved generalization. Test Acc@1 is highest at 85.33\%.
+Top-5 accuracy trends (Figure~\ref{fig:learning_curves_main}c) largely mirror Top-1, with higher absolute values. Input Perturbation also yields the best test Acc@5 (98.91\%).
+
+\begin{figure}[htbp!] % Added 'p' and '!'
+    \centering
+    \includegraphics[width=0.9\linewidth]{figs/perturbed_examples.png}
+    \caption{Examples of input images after applying the strong perturbation pipeline used in training. Each row shows an original image (left) and its perturbed version (right).}
+    \label{fig:perturbed_examples_main}
+\end{figure}
+
+\subsection{Per-Class Performance and Error Analysis}
+\label{ssec:per_class_main}
+Table~\ref{tab:f1_scores_main} presents per-class F1-scores. Figure~\ref{fig:all_cms_main} displays the confusion matrices.
+
+The \textbf{Baseline} model shows typical difficulties with 'cat' and 'dog'. For \textbf{Random Label Shuffle}, against original labels, predictions are biased (Figure~\ref{fig:cm_shuffle_main}), yielding near-zero F1 for most classes. With \textbf{Label Noise (20\%)}, all class F1-scores drop. \textbf{Input Perturbation} improves F1-scores for all classes over baseline (Table~\ref{tab:f1_scores_main}), especially 'cat', 'dog', and 'bird', and its confusion matrix (Figure~\ref{fig:cm_perturb_main}) is visibly cleaner.
+
+\subsection{Qualitative Examples of Input Perturbations}
+\label{ssec:qualitative_main}
+Figure~\ref{fig:perturbed_examples_main} illustrates the strong augmentations applied during training for the "Input Perturbation" experiment.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+This study systematically investigated the impact of input and label modifications on a ResNet-18 model trained on CIFAR-10.
+\textbf{Random Label Shuffle} completely undermines learning, confirming the necessity of coherent label signals. Model performance against original labels was no better than random chance.
+\textbf{20\% Symmetric Label Noise} significantly degraded performance. However, the model still learned effectively, showcasing some inherent robustness, though overfitting to noisy labels was evident.
+Most strikingly, \textbf{Strong Input Perturbations} acted as a powerful regularizer, leading to a substantial improvement in generalization and outperforming the baseline model. This configuration demonstrated reduced overfitting and better overall discrimination across classes.
+
+These results emphasize the critical role of data quality and appropriate data handling strategies. While models can tolerate moderate label noise or benefit greatly from well-designed augmentations, the integrity of the label signal remains paramount. The superior performance under strong input perturbation suggests that exposing models to diverse and challenging input conditions during training can be highly beneficial for learning robust, generalizable features.
+
+Future work could explore the efficacy of explicit noise-robust training techniques under the 20\% label noise condition, investigate a wider range of perturbation types and intensities, and extend this analysis to other datasets and model architectures.
+
+\begin{figure*}[htbp!] % Added 'p' and '!'
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figs/cm_baseline.png}
+        \caption{Baseline}
+        \label{fig:cm_baseline_main}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figs/cm_shuffle.png}
+        \caption{Random Label Shuffle (vs. Original Labels)}
+        \label{fig:cm_shuffle_main}
+    \end{subfigure}
+    \vskip\floatsep
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figs/cm_noise.png}
+        \caption{Label Noise (20\%)}
+        \label{fig:cm_noise_main}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figs/cm_perturb.png}
+        \caption{Input Perturbation}
+        \label{fig:cm_perturb_main}
+    \end{subfigure}
+    \caption{Normalized confusion matrices for the test set. Diagonals represent per-class recall. For "Random Label Shuffle", matrix is vs. original true labels. For others, vs. their respective test loader labels.}
+    \label{fig:all_cms_main}
+\end{figure*}
+
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{egbib}
+}
+
+\end{document}
