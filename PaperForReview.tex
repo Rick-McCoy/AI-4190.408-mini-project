@@ -54,7 +54,7 @@ Understanding how these data imperfections and intentional modifications affect 
 
 This work aims to systematically study the impact of specific input and label modifications on the CIFAR-10~\cite{krizhevsky2009learning} image classification task. We employ a ResNet-18~\cite{DBLP:conf/cvpr/HeZRS16} architecture and investigate four distinct experimental configurations:
 \begin{enumerate}
-    \item \textbf{Baseline:} Training with original CIFAR-10 inputs and labels. 
+    \item \textbf{Baseline:} Training with original CIFAR-10 inputs and labels.
     \item \textbf{Random Label Shuffle:} Training with original inputs but completely randomized labels, where each label is assigned independently and uniformly at random per sample.
     \item \textbf{Label Noise (20\%):} Training with original inputs, but for 20\% of the samples, their labels are randomly flipped to a different incorrect class.
     \item \textbf{Input Perturbation:} Training with original labels but heavily distorted input images, including random crops, blur, color jitter, and random erasing. Test images undergo a milder, fixed perturbation.
@@ -87,18 +87,18 @@ Main training seed is 42; hook-specific seed (Shuffle, Noise) is 0.
 \subsection{Experimental Configurations}
 
 \paragraph{1. Baseline.}
-Original CIFAR-10 inputs and labels. For the baseline, training inputs are only transformed by ToTensor() and normalization using CIFAR-10 mean/std. No other data augmentations such as random cropping or flipping are applied. Test and validation inputs receive the same minimal transformations.
+Original CIFAR-10 inputs and labels. For the baseline, training inputs are only normalized using CIFAR-10 mean/std. No other data augmentations such as random cropping or flipping are applied. Test and validation inputs receive the same minimal transformations.
 
 \paragraph{2. Random Label Shuffle.}
-Original inputs. Each sample's label (train, val, test) replaced by a random uniform choice from 10 classes.
+Original inputs. Each sample's label replaced by a random uniform choice from 10 classes.
 
 \paragraph{3. Label Noise (20\%).}
-Original inputs. 20\% of sample labels (train, val, test) flipped to a random incorrect class.
+Original inputs. 20\% of sample labels flipped to a random incorrect class.
 
 \paragraph{4. Input Perturbation.}
 Original labels.
-\textbf{Training/Validation Inputs:} RandomResizedCrop (32x32, scale (0.6,1.0)), RandomHorizontalFlip (p=0.5), GaussianBlur (kernel 3, sigma (0.1,2.0)), ColorJitter (factors 0.4, hue 0.1), ToTensor, Normalize, RandomErasing~\cite{DBLP:conf/aaai/Zhong0KL020} (p=0.25, scale (0.02,0.2)). Examples in Figure~\ref{fig:perturbed_examples_main}.
-\textbf{Test Inputs:} GaussianBlur (kernel 3, sigma 1.0), ToTensor, Normalize.
+\textbf{Training/Validation Inputs:} RandomResizedCrop (32x32, scale (0.6,1.0)), RandomHorizontalFlip (p=0.5), GaussianBlur (kernel 3, sigma (0.1,2.0)), ColorJitter (factors 0.4, hue 0.1), RandomErasing~\cite{DBLP:conf/aaai/Zhong0KL020} (p=0.25, scale (0.02,0.2)). Examples in Figure~\ref{fig:perturbed_examples_main}.
+\textbf{Test Inputs:} GaussianBlur (kernel 3, sigma 1.0).
 
 \subsection{Evaluation Metrics}
 Metrics: Cross-Entropy Loss, Acc@1, Acc@5, Cohen's $\kappa$, and per-class F1-scores.
@@ -130,7 +130,7 @@ Table~\ref{tab:main_results} summarizes the key test set metrics.
 \end{table*}
 
 \paragraph{Baseline.} Achieves 78.26\% Acc@1 and $\kappa=0.7584$.
-\paragraph{Random Label Shuffle.} Fails to learn; Acc@1 on random labels is 10.11\%. Against original labels, $\kappa=-0.0134$. Loss high (2.3219).
+\paragraph{Random Label Shuffle.} Fails to learn; Acc@1 on random labels is 10.11\%. Against original labels, $\kappa=-0.0134$. Loss high (2.3219). Confusion matrix (Table~\ref{fig:cm_shuffle_main}) shows output collapsed to class \texttt{AUTOMOBILE}.
 \paragraph{Label Noise (20\%).} Degrades to 64.52\% Acc@1, $\kappa=0.6058$. Model shows resilience.
 \paragraph{Input Perturbation.} Best performance: Acc@1 85.33\% (+7.07\% vs. baseline), $\kappa=0.8370$. Test loss lowest (0.5327). Strong regularization.
 

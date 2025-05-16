@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 # Option 2: Import from your main project script (recommended for consistency)
 try:
     # Assuming your main script is 'your_ai_project_script.py'
-    from your_ai_project_script import ExperimentHooks, InputPerturbHooks
+    from main import ExperimentHooks, InputPerturbHooks
 
     print("Successfully imported hooks from your_ai_project_script.py")
 except ImportError:
