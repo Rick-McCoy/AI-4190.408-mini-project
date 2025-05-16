@@ -41,7 +41,7 @@ Seoul National University\\ % Replace with your actual institution(s)
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-    The performance of deep learning models is intrinsically tied to the quality and nature of training data. Real-world datasets often suffer from imperfections such as noisy labels or distorted inputs, while augmentations intentionally modify data to improve robustness. This paper investigates the effects of systematic input and label modifications on a standard image classification task using the CIFAR-10 dataset and a ResNet-18 model. We evaluate four distinct scenarios: (1) a baseline with unchanged data, (2) completely randomized labels per sample, (3) 20\% symmetric label noise, and (4) strong input image perturbations. Our findings reveal that while random labels lead to a catastrophic failure in learning (Cohen's $\kappa \approx -0.01$), the model exhibits resilience to 20\% label noise, achieving 64.5\% Top-1 accuracy (vs. 78.3\% baseline). Strikingly, strong input perturbations applied during training act as a powerful regularizer, significantly improving generalization and yielding the highest test accuracy of 85.3\% and a Cohen's Kappa of 0.837. Learning curve analysis further elucidates these effects, showing reduced overfitting with input perturbations. These results underscore the complex interplay between data quality, augmentation strategies, and model robustness, offering insights for developing more resilient machine learning systems.
+    The performance of deep learning models is intrinsically tied to the quality and nature of training data. Real-world datasets often suffer from imperfections such as noisy labels or distorted inputs, while augmentations intentionally modify data to improve robustness. This paper investigates the effects of systematic input and label modifications on a standard image classification task using the CIFAR-10 dataset and a ResNet-18 model. We evaluate four distinct scenarios: (1) a baseline with unchanged data, (2) completely randomized labels per sample, (3) 20\% symmetric label noise, and (4) strong input image perturbations. Our findings reveal that while random labels lead to a catastrophic failure in learning (Cohen's $\kappa \approx -0.01$), the model exhibits resilience to 20\% label noise, achieving 64.5\% Top-1 accuracy (vs. 78.3\% baseline). Strikingly, strong input perturbations applied during training, effectively introducing significant data augmentation absent in our unaugmented baseline, act as a powerful regularizer, significantly improving generalization and yielding the highest test accuracy of 85.3\% and a Cohen's Kappa of 0.837. Learning curve analysis further elucidates these effects, showing reduced overfitting with input perturbations. These results underscore the complex interplay between data quality, augmentation strategies, and model robustness, offering insights for developing more resilient machine learning systems.
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
@@ -54,7 +54,7 @@ Understanding how these data imperfections and intentional modifications affect 
 
 This work aims to systematically study the impact of specific input and label modifications on the CIFAR-10~\cite{krizhevsky2009learning} image classification task. We employ a ResNet-18~\cite{DBLP:conf/cvpr/HeZRS16} architecture and investigate four distinct experimental configurations:
 \begin{enumerate}
-    \item \textbf{Baseline:} Training with original CIFAR-10 inputs and labels.
+    \item \textbf{Baseline:} Training with original CIFAR-10 inputs and labels. 
     \item \textbf{Random Label Shuffle:} Training with original inputs but completely randomized labels, where each label is assigned independently and uniformly at random per sample.
     \item \textbf{Label Noise (20\%):} Training with original inputs, but for 20\% of the samples, their labels are randomly flipped to a different incorrect class.
     \item \textbf{Input Perturbation:} Training with original labels but heavily distorted input images, including random crops, blur, color jitter, and random erasing. Test images undergo a milder, fixed perturbation.
@@ -87,7 +87,7 @@ Main training seed is 42; hook-specific seed (Shuffle, Noise) is 0.
 \subsection{Experimental Configurations}
 
 \paragraph{1. Baseline.}
-Original CIFAR-10 inputs/labels. Inputs normalized (CIFAR-10 mean/std).
+Original CIFAR-10 inputs and labels. For the baseline, training inputs are only transformed by ToTensor() and normalization using CIFAR-10 mean/std. No other data augmentations such as random cropping or flipping are applied. Test and validation inputs receive the same minimal transformations.
 
 \paragraph{2. Random Label Shuffle.}
 Original inputs. Each sample's label (train, val, test) replaced by a random uniform choice from 10 classes.
