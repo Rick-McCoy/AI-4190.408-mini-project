@@ -22,7 +22,6 @@
 \usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref}
 
 
-% \def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
 \def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
 
 % Pages are numbered in submission mode, and unnumbered in camera-ready
@@ -49,11 +48,11 @@ Seoul National University\\ % Replace with your actual institution(s)
 \section{Introduction}
 \label{sec:intro}
 
-Deep neural networks have achieved state-of-the-art performance across a multitude of computer vision tasks, including image classification~\cite{Krizhevsky2012Imagenet,He2016DeepRL}. A critical factor underpinning this success is the availability of large-scale, high-quality labeled datasets~\cite{Deng2009ImageNet}. However, in practical applications, data acquisition and annotation processes are often imperfect, leading to various forms of data corruption. Inputs can be distorted due to sensor noise or varying environmental conditions. Labels can be erroneous due to human annotator mistakes, ambiguity in classes, or automated labeling inaccuracies~\cite{Natarajan2013LearningWN,Han2018Coteaching}. Conversely, intentional modifications like data augmentation are widely used to improve model generalization~\cite{Shorten2019ASO}.
+Deep neural networks have achieved state-of-the-art performance across a multitude of computer vision tasks, including image classification~\cite{DBLP:journals/cacm/KrizhevskySH17,DBLP:conf/cvpr/HeZRS16}. A critical factor underpinning this success is the availability of large-scale, high-quality labeled datasets~\cite{DBLP:conf/cvpr/DengDSLL009}. However, in practical applications, data acquisition and annotation processes are often imperfect, leading to various forms of data corruption. Inputs can be distorted due to sensor noise or varying environmental conditions. Labels can be erroneous due to human annotator mistakes, ambiguity in classes, or automated labeling inaccuracies~\cite{DBLP:conf/nips/NatarajanDRT13,DBLP:conf/nips/HanYYNXHTS18}. Conversely, intentional modifications like data augmentation are widely used to improve model generalization~\cite{DBLP:journals/jbd/ShortenK19}.
 
-Understanding how these data imperfections and intentional modifications affect model training and generalization is crucial for building robust and reliable machine learning systems. While models can sometimes memorize even random labels~\cite{Zhang2017UnderstandingDL}, their ability to generalize to unseen data under such conditions is severely compromised. On the other hand, certain forms of input modifications can significantly enhance model robustness~\cite{Zhong2020RandomED,Cubuk2019AutoAugmentLA}.
+Understanding how these data imperfections and intentional modifications affect model training and generalization is crucial for building robust and reliable machine learning systems. While models can sometimes memorize even random labels~\cite{DBLP:journals/corr/ZhangBHRV16}, their ability to generalize to unseen data under such conditions is severely compromised. On the other hand, certain forms of input modifications can significantly enhance model robustness~\cite{DBLP:conf/aaai/Zhong0KL020,Cubuk2019AutoAugmentLA}.
 
-This work aims to systematically study the impact of specific input and label modifications on the CIFAR-10~\cite{Krizhevsky2009LearningML} image classification task. We employ a ResNet-18~\cite{He2016DeepRL} architecture and investigate four distinct experimental configurations:
+This work aims to systematically study the impact of specific input and label modifications on the CIFAR-10~\cite{krizhevsky2009learning} image classification task. We employ a ResNet-18~\cite{DBLP:conf/cvpr/HeZRS16} architecture and investigate four distinct experimental configurations:
 \begin{enumerate}
     \item \textbf{Baseline:} Training with original CIFAR-10 inputs and labels.
     \item \textbf{Random Label Shuffle:} Training with original inputs but completely randomized labels, where each label is assigned independently and uniformly at random per sample.
@@ -66,11 +65,11 @@ We evaluate performance using standard metrics such as Top-1/Top-5 accuracy, los
 \section{Related Work}
 \label{sec:related}
 
-\paragraph{Learning with Noisy Labels.} The challenge of training models with noisy labels has been extensively studied. Approaches range from robust loss functions~\cite{Ghosh2017RobustLF,Zhang2018GeneralizedCE}, label correction mechanisms~\cite{Reed2015TrainingDN}, sample selection strategies~\cite{Han2018Coteaching,Jiang2018MentorNet}, to meta-learning techniques~\cite{Li2019LearningTR}. Our "Label Noise (20\%)" experiment investigates symmetric label noise.
+\paragraph{Learning with Noisy Labels.} The challenge of training models with noisy labels has been extensively studied. Approaches range from robust loss functions~\cite{DBLP:conf/aaai/GhoshKS17,DBLP:conf/nips/ZhangS18}, label correction mechanisms~\cite{DBLP:journals/corr/ReedLASER14}, sample selection strategies~\cite{DBLP:conf/nips/HanYYNXHTS18,DBLP:conf/icml/JiangZLLF18}, to meta-learning techniques~\cite{DBLP:conf/icml/RenZYU18}. Our "Label Noise (20\%)" experiment investigates symmetric label noise.
 
-\paragraph{Data Augmentation and Robustness.} Data augmentation is a cornerstone technique for improving the generalization of deep learning models~\cite{Shorten2019ASO}. Common methods include geometric transformations, color space adjustments, and more advanced techniques like Mixup~\cite{Zhang2018mixupBE}, CutMix~\cite{Yun2019CutMixRS}, and AutoAugment~\cite{Cubuk2019AutoAugmentLA}. Our "Input Perturbation" experiment employs a suite of strong augmentations, including Random Erasing~\cite{Zhong2020RandomED}.
+\paragraph{Data Augmentation and Robustness.} Data augmentation is a cornerstone technique for improving the generalization of deep learning models~\cite{DBLP:journals/jbd/ShortenK19}. Common methods include geometric transformations, color space adjustments, and more advanced techniques like Mixup~\cite{DBLP:conf/iclr/ZhangCDL18}, CutMix~\cite{DBLP:conf/iccv/YunHCOYC19}, and AutoAugment~\cite{Cubuk2019AutoAugmentLA}. Our "Input Perturbation" experiment employs a suite of strong augmentations, including Random Erasing~\cite{DBLP:conf/aaai/Zhong0KL020}.
 
-\paragraph{Model Capacity and Memorization.} Deep networks can fit random labels~\cite{Zhang2017UnderstandingDL}, highlighting their memorization capacity but questioning true generalization. Our "Random Label Shuffle" experiment probes this.
+\paragraph{Model Capacity and Memorization.} Deep networks can fit random labels~\cite{DBLP:journals/corr/ZhangBHRV16}, highlighting their memorization capacity but questioning true generalization. Our "Random Label Shuffle" experiment probes this.
 
 \paragraph{Covariate Shift.} Input perturbations can be viewed as a form of covariate shift. Our "Input Perturbation" experiment, with different train/test distortions, touches upon this challenge~\cite{Patel2015VisualDA}.
 
@@ -78,10 +77,10 @@ We evaluate performance using standard metrics such as Top-1/Top-5 accuracy, los
 \label{sec:methods}
 
 \subsection{Dataset}
-We use the CIFAR-10 dataset~\cite{Krizhevsky2009LearningML}, comprising 60,000 32x32 color images in 10 classes. It's split into 50,000 training and 10,000 test images. We reserve 10\% of training data (5,000 images) for validation (fixed seed 42), resulting in 45,000 training, 5,000 validation, and 10,000 test images.
+We use the CIFAR-10 dataset~\cite{krizhevsky2009learning}, comprising 60,000 32x32 color images in 10 classes. It's split into 50,000 training and 10,000 test images. We reserve 10\% of training data (5,000 images) for validation (fixed seed 42), resulting in 45,000 training, 5,000 validation, and 10,000 test images.
 
 \subsection{Baseline Model and Training}
-A ResNet-18 architecture~\cite{He2016DeepRL} is used, initialized from scratch.
+A ResNet-18 architecture~\cite{DBLP:conf/cvpr/HeZRS16} is used, initialized from scratch.
 Training is for 200 epochs using SGD (momentum 0.9, weight decay 5e-4, batch size 128). Initial LR is 0.1, with a 5-epoch linear warmup, then Cosine Annealing.
 Main training seed is 42; hook-specific seed (Shuffle, Noise) is 0.
 
@@ -98,7 +97,7 @@ Original inputs. 20\% of sample labels (train, val, test) flipped to a random in
 
 \paragraph{4. Input Perturbation.}
 Original labels.
-\textbf{Training/Validation Inputs:} RandomResizedCrop (32x32, scale (0.6,1.0)), RandomHorizontalFlip (p=0.5), GaussianBlur (kernel 3, sigma (0.1,2.0)), ColorJitter (factors 0.4, hue 0.1), ToTensor, Normalize, RandomErasing~\cite{Zhong2020RandomED} (p=0.25, scale (0.02,0.2)). Examples in Figure~\ref{fig:perturbed_examples_main}.
+\textbf{Training/Validation Inputs:} RandomResizedCrop (32x32, scale (0.6,1.0)), RandomHorizontalFlip (p=0.5), GaussianBlur (kernel 3, sigma (0.1,2.0)), ColorJitter (factors 0.4, hue 0.1), ToTensor, Normalize, RandomErasing~\cite{DBLP:conf/aaai/Zhong0KL020} (p=0.25, scale (0.02,0.2)). Examples in Figure~\ref{fig:perturbed_examples_main}.
 \textbf{Test Inputs:} GaussianBlur (kernel 3, sigma 1.0), ToTensor, Normalize.
 
 \subsection{Evaluation Metrics}
@@ -109,7 +108,7 @@ For "Random Label Shuffle", Acc@1/Acc@5/Loss use shuffled test labels; $\kappa$ 
 \label{sec:experiments_results}
 
 \subsection{Implementation Details}
-Conducted using PyTorch~\cite{Paszke2019PyTorchAI}. Model, hyperparameters, data splits consistent (Sec.~\ref{sec:methods}).
+Conducted using PyTorch~\cite{DBLP:conf/nips/PaszkeGMLBCKLGA19}. Model, hyperparameters, data splits consistent (Sec.~\ref{sec:methods}).
 
 \subsection{Overall Performance}
 Table~\ref{tab:main_results} summarizes the key test set metrics.

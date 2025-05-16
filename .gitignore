@@ -186,3 +186,5 @@ figs/
 *.fls
 *.synctex.gz
 *.synctex(busy)
+
+.DS_Store

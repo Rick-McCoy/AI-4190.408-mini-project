@@ -16,8 +16,6 @@ Features
 * Improved variable names for readability.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import logging
@@ -455,7 +453,13 @@ def run_experiment(config: TrainConfig, hooks: ExperimentHooks, experiment_name:
     setup_logging(config.output_dir)
     set_seed(config.seed)  # Sets global seed for torch, numpy, random
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(
+        "cuda"
+        if torch.cuda.is_available()
+        else "mps"
+        if torch.backends.mps.is_available()
+        else "cpu"
+    )
     logging.info("Using device: %s", device)
 
     train_loader, validation_loader, test_loader = build_dataloaders(config, hooks)
